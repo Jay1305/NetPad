@@ -3,7 +3,12 @@ import {bindable, ILogger} from "aurelia";
 import {ScriptEnvironment, ScriptOutput} from "@domain";
 import {IToolbarAction} from "./output-view-toolbar";
 import {Util} from "@common";
+import hljs from "highlight.js/lib/common";
+import "highlight.js/styles/atom-one-dark.min.css";
 
+/**
+ * A base class for children of the output-view.
+ */
 export abstract class OutputViewBase extends ViewModelBase {
     @bindable public environment: ScriptEnvironment;
     @bindable public active: boolean;
@@ -35,8 +40,54 @@ export abstract class OutputViewBase extends ViewModelBase {
     protected renderQueue: Element[] = [];
 
     private processRenderQueue = Util.debounce(this, () => {
-        this.outputElement.append(...this.renderQueue);
+        const batch = [...this.renderQueue];
         this.renderQueue.splice(0);
+
+        for (let iEl = 0; iEl < batch.length; iEl++) {
+            const group = batch[iEl];
+
+            if (group.classList.contains("code")) {
+                const codeEl = group.querySelector("code");
+                if (codeEl) {
+                    const lang = Array.from(codeEl.classList)
+                        .find(x => x.startsWith("language-"))?.substring("language-".length);
+
+                    const code = codeEl.textContent ?? "";
+
+                    codeEl.innerHTML = !lang || lang === "auto"
+                        ? hljs.highlightAuto(code).value
+                        : hljs.highlight(code, {language: lang}).value;
+                }
+            }  else if (group.getAttribute("tag")?.startsWith("live-collection")) {
+                const liveCollectionId = group.getAttribute("tag")!.split(':')[1];
+                const existingLiveCollectionGroup = document.getElementById(liveCollectionId);
+
+                if (existingLiveCollectionGroup) {
+                    const incomingTable = group.firstElementChild as HTMLTableElement;
+
+                    const table = existingLiveCollectionGroup.firstElementChild as HTMLTableElement;
+                    table.replaceWith(incomingTable);
+
+                    // table.tBodies.item(0)!.innerHTML = incomingTable.tBodies.item(0)!.innerHTML;
+
+                    // We don't need this group anymore, remove it.
+                    batch.splice(iEl, 1);
+                    iEl--;
+                }
+            } else if (group.lastElementChild?.tagName.toLowerCase() === "script") {
+                // Script tags cannot be injected as is, they must be recreated and appended to the DOM for
+                // them to execute.
+                const script = document.createElement("script");
+                const code = document.createTextNode(group.textContent ?? "");
+                script.appendChild(code);
+
+                // Replace the previous script
+                group.lastElementChild.remove();
+                group.appendChild(script);
+            }
+        }
+
+        this.outputElement.append(...batch);
 
         if (this.scrollOnOutput) {
             this.outputElement.scrollTop = this.outputElement.scrollHeight;
@@ -50,7 +101,7 @@ export abstract class OutputViewBase extends ViewModelBase {
     public bound() {
         this.findTextBoxOptions = new FindTextBoxOptions(
             this.outputElement,
-            ".null, .property-value, .property-name, .text");
+            ".null, .property-value, .property-name, .text, .group > .title");
     }
 
     public getOutputHtml() {
@@ -94,7 +145,7 @@ export abstract class OutputViewBase extends ViewModelBase {
     }
 
     private appendHtml(html: string | null | undefined) {
-        if (html === undefined || html === null ) return;
+        if (html === undefined || html === null) return;
 
         const template = document.createElement("template");
         template.innerHTML = html;

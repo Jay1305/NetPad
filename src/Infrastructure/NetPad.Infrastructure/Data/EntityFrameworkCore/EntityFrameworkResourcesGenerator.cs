@@ -229,7 +229,7 @@ public class EntityFrameworkResourcesGenerator : IDataConnectionResourcesGenerat
 
             var entityType = parts[0].SubstringBetween("<", ">");
             var propertyName = parts[1];
-            var dbContextPropertyName = $"{propertyName}_HIDDEN";
+            var dbContextPropertyName = $"{propertyName}";
 
             programProperties.Add($@"
     /// <summary>
