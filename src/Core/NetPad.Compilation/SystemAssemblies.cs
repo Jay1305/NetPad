@@ -63,6 +63,9 @@ public static class SystemAssemblies
         }
 
         return Directory.GetFiles(assembliesDirectory, "*.dll")
+            .Union(
+                Directory.GetFiles("/opt/dotnet/packs/Microsoft.AspNetCore.App.Ref/7.0.10/ref/net7.0", "*.dll")
+            )
             .Where(a => !a.Contains("VisualBasic"))
             .ToHashSet();
     }

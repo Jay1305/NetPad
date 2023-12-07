@@ -283,7 +283,7 @@ public partial class ExternalProcessScriptRuntime
     ""runtimeOptions"": {{
         ""tfm"": ""{tfm}"",
         ""framework"": {{
-            ""name"": ""Microsoft.NETCore.App"",
+            ""name"": ""Microsoft.AspNetCore.App"",
             ""version"": ""{runtimeVersion}""
         }},
         ""rollForward"": ""Minor"",

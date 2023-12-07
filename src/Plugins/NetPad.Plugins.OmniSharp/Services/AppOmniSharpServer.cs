@@ -80,6 +80,7 @@ public class AppOmniSharpServer
         await Project.CreateAsync(
             _environment.Script.Config.TargetFrameworkVersion,
             ProjectOutputType.Executable,
+            ProjectSdkType.AspNetCoreApp,
             true);
 
         await Project.SetProjectPropertyAsync("AllowUnsafeBlocks", "true");

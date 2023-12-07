@@ -120,6 +120,17 @@ public static class ScriptConfigDefaults
         //"System.Transactions",
         "System.Xml",
         "System.Xml.Linq",
-        "System.Xml.XPath"
+        "System.Xml.XPath",
+
+
+        "System.Net.Http.Json",
+        "Microsoft.AspNetCore.Builder",
+        "Microsoft.AspNetCore.Hosting",
+        "Microsoft.AspNetCore.Http",
+        "Microsoft.AspNetCore.Routing",
+        "Microsoft.Extensions.Configuration",
+        "Microsoft.Extensions.DependencyInjection",
+        "Microsoft.Extensions.Hosting",
+        "Microsoft.Extensions.Logging",
     };
 }

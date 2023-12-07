@@ -73,7 +73,11 @@ public class DotNetCSharpProject
     /// <param name="targetDotNetFrameworkVersion">The .NET framework to target.</param>
     /// <param name="outputType">The output type of the project.</param>
     /// <param name="deleteExisting">If true, will delete the project directory if it already exists on disk.</param>
-    public virtual async Task CreateAsync(DotNetFrameworkVersion targetDotNetFrameworkVersion, ProjectOutputType outputType, bool deleteExisting = false)
+    public virtual async Task CreateAsync(
+        DotNetFrameworkVersion targetDotNetFrameworkVersion,
+        ProjectOutputType outputType,
+        ProjectSdkType sdkType = ProjectSdkType.NetCoreApp,
+        bool deleteExisting = false)
     {
         if (deleteExisting)
         {
@@ -84,7 +88,9 @@ public class DotNetCSharpProject
 
         string dotnetOutputType = outputType == ProjectOutputType.Executable ? "Exe" : "Library";
 
-        string xml = $@"<Project Sdk=""Microsoft.NET.Sdk"">
+        var sdk = sdkType == ProjectSdkType.NetCoreApp ? "Microsoft.NET.Sdk" : "Microsoft.NET.Sdk.Web";
+
+        string xml = $@"<Project Sdk=""{sdk}"">
 
     <PropertyGroup>
         <OutputType>{dotnetOutputType}</OutputType>
