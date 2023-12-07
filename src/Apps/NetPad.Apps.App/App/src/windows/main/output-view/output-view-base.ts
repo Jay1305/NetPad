@@ -42,6 +42,7 @@ export abstract class OutputViewBase extends ViewModelBase {
     private processRenderQueue = Util.debounce(this, () => {
         const batch = [...this.renderQueue];
         this.renderQueue.splice(0);
+        console.warn("Processing batch", batch);
 
         for (let iEl = 0; iEl < batch.length; iEl++) {
             const group = batch[iEl];
@@ -58,14 +59,16 @@ export abstract class OutputViewBase extends ViewModelBase {
                         ? hljs.highlightAuto(code).value
                         : hljs.highlight(code, {language: lang}).value;
                 }
-            }  else if (group.getAttribute("tag")?.startsWith("live-collection")) {
+            } else if (group.getAttribute("tag")?.startsWith("live-collection")) {
                 const liveCollectionId = group.getAttribute("tag")!.split(':')[1];
-                const existingLiveCollectionGroup = document.getElementById(liveCollectionId);
+                const existingLiveCollectionGroup =
+                    batch.find((item, index) => index < iEl && item.getAttribute("id") == liveCollectionId) ??
+                    document.getElementById(liveCollectionId);
 
                 if (existingLiveCollectionGroup) {
-                    const incomingTable = group.firstElementChild as HTMLTableElement;
+                    const incomingTable = group.lastElementChild as HTMLTableElement;
 
-                    const table = existingLiveCollectionGroup.firstElementChild as HTMLTableElement;
+                    const table = existingLiveCollectionGroup.lastElementChild as HTMLTableElement;
                     table.replaceWith(incomingTable);
 
                     // table.tBodies.item(0)!.innerHTML = incomingTable.tBodies.item(0)!.innerHTML;
@@ -87,7 +90,13 @@ export abstract class OutputViewBase extends ViewModelBase {
             }
         }
 
+        if (batch.length === 0) {
+            return;
+        }
+
         this.outputElement.append(...batch);
+
+        console.warn("Appending batch", batch);
 
         if (this.scrollOnOutput) {
             this.outputElement.scrollTop = this.outputElement.scrollHeight;

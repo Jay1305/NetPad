@@ -28,7 +28,12 @@ public static class DumpExtension
 
         if (ScriptRuntimeServices.OutputFormat == ExternalProcessOutputFormat.HTML)
         {
-
+            // When using Dump() its implied that a new line is added to the end of it when rendered
+            // When rendering objects or collections (ie. objects that are NOT rendered as strings)
+            // they are rendered in an HTML block element that automatically pushes elements after it
+            // to a new line. However when rendering strings (or objects that are rendered as strings)
+            // HTML renders them in-line. So here we detect that, add manually add a new line
+            shouldAddNewLineAfter = title == null || HtmlPresenter.IsDotNetTypeWithStringRepresentation(typeof(T));
         }
 
         // if (id != null && id.All(char.IsWhiteSpace))
@@ -92,6 +97,34 @@ public static class DumpExtension
         );
 
         return collection;
+    }
+
+    public static PresentationView<T> DumpView<T>(
+        this PresentationView<T> view,
+        string? title = null,
+        string? css = null,
+        int? clear = null,
+        Func<bool>? stopWhen = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        view.StartLiveView(o =>
+            {
+                ScriptRuntimeServices.ResultWrite(
+                    o,
+                    new DumpOptions(
+                        Id: view.Id.ToString(),
+                        Tag: $"live-collection:{view.Id}",
+                        Title: title,
+                        CssClasses: css,
+                        DestructAfterMs: clear
+                    ));
+            },
+            stopWhen,
+            cancellationToken
+        );
+
+        return view;
     }
 
     /// <summary>

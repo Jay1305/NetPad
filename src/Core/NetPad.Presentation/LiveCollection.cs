@@ -100,7 +100,7 @@ public class LiveCollection<T> : ObservableCollection<T>, IDisposable
             _isListening = true;
         }
 
-        Flush();
+        DebouncedFlush();
     }
 
     public void StopLiveView()
